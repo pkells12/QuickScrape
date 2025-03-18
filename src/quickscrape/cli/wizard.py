@@ -109,7 +109,7 @@ def run_wizard(config_name: Optional[str] = None) -> None:
         )
         
         # Save the configuration
-        config_manager.save_config(config_name, config)
+        config_manager.save_config(config, config_name)
         
         console.print(
             f"\n[bold green]Configuration '{config_name}' created successfully![/bold green]"

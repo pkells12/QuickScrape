@@ -203,7 +203,7 @@ if not config_manager.config_exists("price_monitor"):
             "path": "prices.csv"
         }
     }
-    config_manager.save_config("price_monitor", config)
+    config_manager.save_config(config, "price_monitor")
 
 # Create job manager
 job_manager = JobManager()

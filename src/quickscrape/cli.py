@@ -62,7 +62,7 @@ def main(debug: bool, log_file: bool) -> None:
         logger.info("File logging enabled")
 
 
-@main.command("init")
+@click.command("init")
 @click.argument("name", required=False, default="default")
 @click.option(
     "--force", "-f", is_flag=True, help="Overwrite existing configuration if it exists"
@@ -74,10 +74,8 @@ def init_command(name: str, force: bool, examples: bool) -> None:
     """
     Initialize a new scraping configuration.
 
-    Creates a new configuration file with default settings
-    that you can then customize for your scraping task.
-
-    If NAME is not provided, the configuration will be named 'default'.
+    Creates a new configuration file with the given NAME (default: 'default').
+    If --examples is specified, creates example configurations instead.
     """
     if examples:
         create_example_configs()
@@ -86,7 +84,7 @@ def init_command(name: str, force: bool, examples: bool) -> None:
     initialize_config(name, force)
 
 
-@main.command("scrape")
+@click.command("scrape")
 @click.argument("config_name", required=True)
 @click.option(
     "--output", "-o", help="Specify output file (overrides configuration setting)"
@@ -97,14 +95,9 @@ def init_command(name: str, force: bool, examples: bool) -> None:
 )
 def scrape_command(config_name: str, output: Optional[str], format: Optional[str], debug: bool) -> None:
     """
-    Run a scraping job using the specified configuration.
+    Run a scraping task with the specified configuration.
 
-    This command executes a scraping task based on the configuration
-    specified by CONFIG_NAME. The configuration must exist in the
-    QuickScrape configuration directory.
-
-    Example:
-    quickscrape scrape my_product_scraper
+    CONFIG_NAME is the name of the configuration to use.
     """
     if debug:
         import logging
@@ -283,34 +276,26 @@ def display_sample_results(items: List[Dict[str, Any]], sample_size: int = 5) ->
     console.print(table)
 
 
-@main.command("wizard")
+@click.command("wizard")
 @click.argument("name", required=False)
 def wizard_command(name: Optional[str]) -> None:
     """
     Start the interactive setup wizard.
 
-    The wizard will guide you through the process of creating
-    a scraping configuration by asking questions and showing
-    previews of the data that will be extracted.
-
-    If NAME is not provided, the configuration will be named 'wizard_config'.
+    The wizard will guide you through creating a scraping configuration.
+    If NAME is provided, the resulting configuration will use that name.
     """
     run_wizard(name)
 
 
-@main.command("list")
+@click.command("list")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
 @click.argument("config_name", required=False)
 def list_command(verbose: bool, config_name: Optional[str]) -> None:
     """
-    List available configurations.
+    List available scraping configurations.
 
-    Shows all the configured scraping jobs in your QuickScrape
-    configuration directory, along with basic information about each.
-    
-    Use --verbose to see more details about each configuration.
-    
-    If CONFIG_NAME is provided, shows detailed information about that specific configuration.
+    If CONFIG_NAME is provided, shows details for that specific configuration.
     """
     if config_name:
         get_config_details(config_name)
@@ -427,7 +412,7 @@ def generate_selectors(
                     # Save config
                     from quickscrape.config.config_manager import ConfigManager
                     config_manager = ConfigManager()
-                    config_manager.save_config(output_path, config)
+                    config_manager.save_config(config, output_path)
                     
                     console.print(f"[bold green]Configuration saved to:[/bold green] {output_path}")
             
@@ -575,13 +560,13 @@ def analyze_webpage(
         raise click.Exit(1)
 
 
-@main.group("job")
+@click.group("job")
 def job_group() -> None:
     """
-    Manage scraping jobs.
+    Manage scraping jobs and schedules.
 
-    This group of commands allows you to create, list, run,
-    and manage scraping jobs.
+    This command group provides access to job management functionality,
+    including creating, listing, and controlling scheduled scraping jobs.
     """
     pass
 
@@ -818,7 +803,7 @@ def delete_job_command(job_id: str) -> None:
         console.print(f"[red]Error deleting job: {e}[/red]")
 
 
-@main.command("schedule")
+@click.command("schedule")
 @click.option(
     "--stop", 
     is_flag=True, 
@@ -826,10 +811,10 @@ def delete_job_command(job_id: str) -> None:
 )
 def schedule_command(stop: bool) -> None:
     """
-    Start or stop the job scheduler.
-    
-    By default, starts the scheduler that will execute jobs based on their schedules.
-    Use --stop to stop the scheduler.
+    Start the job scheduler.
+
+    Runs the scheduler process that executes scheduled scraping jobs
+    according to their defined schedules.
     """
     scheduler = get_scheduler()
     
